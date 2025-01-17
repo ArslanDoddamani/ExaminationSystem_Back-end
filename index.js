@@ -34,6 +34,11 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/faculty', facultyRoutes);
 
 const PORT = process.env.PORT;
+
+app.get('/',()=>{
+  res.send('Hello World');
+})
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
