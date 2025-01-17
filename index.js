@@ -35,7 +35,7 @@ app.use('/api/faculty', facultyRoutes);
 
 const PORT = process.env.PORT;
 
-app.get('/',()=>{
+app.get('/',(req, res)=>{
   res.send('Hello World');
 })
 
