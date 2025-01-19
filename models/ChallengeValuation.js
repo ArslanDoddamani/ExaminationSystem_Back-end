@@ -24,7 +24,7 @@ const challengeValuationSchema = new mongoose.Schema(
     },
     Type: {
       type: String,
-      enum: ["Regular", "Reregister - F", "Reregister - W"],
+      enum: ["Regular", "Reregister - F", "Reregister - NE"],
       required: true,
     },
     Status: {

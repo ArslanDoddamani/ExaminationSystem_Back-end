@@ -78,6 +78,20 @@ router.patch('/assign-usn/:userId', async (req, res) => {
   }
 });
 
+router.patch('/increase-sem/:userId', async (req, res) => {
+  try {
+    const { currentSemester } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.params.userId,
+      { currentSemester },
+      { new: true }
+    );
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 router.delete("/subject", async (req, res) => {
   try {
     const subjectId = req.body.subjectId; // Access subjectId from the request body
@@ -97,7 +111,7 @@ router.delete("/subject", async (req, res) => {
 
 router.patch('/grades', auth, checkRole(['admin']), async (req, res) => {
   try {
-    const { studentId, subjectId, grade } = req.body;
+    const { studentId, subjectId, grade, sem } = req.body;
 
     // Fetch the student and populate registeredSubjects
     const student = await User.findById(studentId).populate('registeredSubjects.subject');
@@ -108,8 +122,9 @@ router.patch('/grades', auth, checkRole(['admin']), async (req, res) => {
 
     // Find the registered subject by subjectId and update the grade
     const registeredSubject = student.registeredSubjects.find(
-      (sub) => sub.subject._id.toString() === subjectId
+      (sub) => sub.subject._id.toString() === subjectId && sub.semester === sem
     );
+    
 
     if (!registeredSubject) {
       return res.status(404).json({ message: 'Subject not found for this student' });
@@ -117,6 +132,13 @@ router.patch('/grades', auth, checkRole(['admin']), async (req, res) => {
 
     // Update the grade
     registeredSubject.grade = grade;
+    if (grade !== 'F' && grade !== 'NE') {
+      student.registeredSubjects.forEach((sub) => {
+        if (sub.subject._id.toString() === subjectId) {
+          sub.cleared = 'YES';
+        }
+      });
+    }
 
     // Save the updated student
     await student.save();
@@ -130,6 +152,7 @@ router.patch('/grades', auth, checkRole(['admin']), async (req, res) => {
 
 router.patch('/launch-result', auth, checkRole(['admin']), async (req, res) => {
   const { semester, date } = req.body;
+  
 
   if (!semester || typeof semester !== 'number') {
     return res.status(400).json({ error: 'A valid semester number is required.' });
@@ -157,13 +180,14 @@ router.patch('/launch-result', auth, checkRole(['admin']), async (req, res) => {
         });
 
         if (isUpdated) {
-          student.currentSemester += 1; // Increment the currentSemester
           await student.save(); // Save the updated student document
         }
 
         return student; // Return the updated student object
       })
     );
+
+
 
     // Filter and include only students with updated flags in the response
     const successfullyUpdated = updatedStudents.filter((student) =>
@@ -258,4 +282,6 @@ router.get('/payments', auth, checkRole(['admin']), async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
+
+
 export default router;

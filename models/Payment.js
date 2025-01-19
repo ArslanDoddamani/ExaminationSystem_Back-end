@@ -16,7 +16,7 @@ const paymentSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['ExamFee', 'ChallengeValuation', 'F', 'W'],
+    enum: ['ExamFee', 'ChallengeValuation', 'F', 'NE'],
     required: true
   },
   status: {

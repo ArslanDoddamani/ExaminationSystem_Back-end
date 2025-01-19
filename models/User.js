@@ -17,7 +17,7 @@ const paymentSchema = new mongoose.Schema(
         "ExamFee",
         "ChallengeValuation",
         "Reregister - F",
-        "Reregister - W",
+        "Reregister - NE",
       ],
       required: true,
     },
@@ -56,12 +56,16 @@ const registeredSubjectSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    cleared: {
+      type: String,
+      default: "-",
+    },
     registerType: {
       type: String,
       enum: [
         "Regular",
         "Reregister - F",
-        "Reregister - W",
+        "Reregister - NE",
       ],
       required: true,
     },

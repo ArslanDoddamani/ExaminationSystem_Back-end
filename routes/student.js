@@ -211,7 +211,7 @@ router.post("/verifypayment", async (req, res) => {
       subject: subject._id,
       grade: "-", // Default grade
       flag: false,
-      semester: semester,
+      semester: `${semester == 0 ? semester + 1 : semester}`,
       registerType: "Regular",
     }));
 
@@ -220,7 +220,7 @@ router.post("/verifypayment", async (req, res) => {
 
     // Log the payment
     user.payments.push({
-      amount: 1500, // Adjust the amount as necessary
+      amount: 2100, // Adjust the amount as necessary
       type: `Semester ${semester} Registration fees`,
       status: "completed",
       razorpay_order_id,
@@ -255,6 +255,7 @@ router.post("/challenge-valuation", auth, checkRole(["student"]), async (req, re
         userSem,
         price,
       } = req.body;
+      
 
       // Verify Razorpay signature
       const expectedSignature = crypto
@@ -394,6 +395,9 @@ router.get("/subject/rrSubject/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
 
+    console.log(userId);
+    
+
     const user = await User.findById(userId);
     if (!user) {
       return res
@@ -405,8 +409,9 @@ router.get("/subject/rrSubject/:userId", async (req, res) => {
 
     const { subjects, gradeArr } = registeredSubjects.reduce(
       (acc, item) => {
-        if (item.flag && currentSemester === item.semester && (item.grade === "F" || item.grade === "W")) {
+        if (item.flag && (item.grade === "F" || item.grade === "NE") && item.cleared !== 'YES' && currentSemester !== item.semester) {
           acc.subjects.push(item.subject);
+          console.log(item.grade);
           acc.gradeArr.push(item.grade);
         }
         return acc;
@@ -500,7 +505,7 @@ router.post("/rrSubjectpayment", async (req, res) => {
 
     user.registeredSubjects.push(registeredSubject);
     user.payments.push({
-      amount: subject.fees[type === "Reregister - W" ? "reRegistrationW" : "reRegistrationF"],
+      amount: subject.fees[type === "Reregister - NE" ? "reRegistrationW" : "reRegistrationF"],
       type,
       status: "completed",
       razorpay_order_id,
