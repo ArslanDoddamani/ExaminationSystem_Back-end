@@ -232,5 +232,30 @@ router.patch('/challengevaluations/status', auth, checkRole(['admin']), async (r
     return res.status(500).json({ message: "Internal server error. Please try again." });
   }
 });
+//payment fetch
+router.get('/payments', auth, checkRole(['admin']), async (req, res) => {
+  try {
+    const users = await User.find({}, { name: 1, USN: 1, payments: 1 }); // Fetch payments for all users
+    const allPayments = [];
 
+    users.forEach((user) => {
+      if (Array.isArray(user.payments)) { // Check if payments is an array
+        user.payments.forEach((payment) => {
+          allPayments.push({
+            ...payment.toObject(), // Include all fields from the payment schema
+            userName: user.name,  // Include user's name
+            userUSN: user.USN,    // Include user's USN
+          });
+        });
+      }
+    });
+
+    // Sort payments by creation date (latest to earliest)
+    allPayments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.json(allPayments); // Send all payments with details
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
 export default router;
